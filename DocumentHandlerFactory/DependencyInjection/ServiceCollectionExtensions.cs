@@ -10,17 +10,28 @@ namespace DocumentHandlerFactory.DependencyInjection
     {
         public static IServiceCollection AddDocumentHandlerFactory(this IServiceCollection services, Action<DocumentHandlerSettings> settings = null)
         {
-            DocumentHandlerSettings _settings = DocumentHandlerSettings.DefaultValue();
+            DocumentHandlerSettings documentHandlerSettings = DocumentHandlerSettings.DefaultValue();
 
-            settings?.Invoke(_settings);
+            settings?.Invoke(documentHandlerSettings);
 
-            _settings.Validate();
-
-            services.AddSingleton(x => _settings);
+            documentHandlerSettings.Validate();
 
             return services
-                .AddScoped<IDocumentHandlerService, DocumentHandlerService>()
-                .AddScoped<ITempFileHandlerService, TempFileHandlerService>();
+            .AddSingleton(documentHandlerSettings)
+            .AddScoped<IDocumentHandlerService, DocumentHandlerService>();
+        }
+
+        public static IServiceCollection AddTempFileHandler(this IServiceCollection services, Action<TempFileSettings> settings = null)
+        {
+            TempFileSettings tempFileSettings = TempFileSettings.DefaultValue();
+
+            settings?.Invoke(tempFileSettings);
+
+            tempFileSettings.Validate();
+
+            return services
+            .AddSingleton(tempFileSettings)
+            .AddScoped<ITempFileHandlerService, TempFileHandlerService>();
         }
     }
 }

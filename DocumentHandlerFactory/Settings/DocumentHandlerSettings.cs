@@ -1,4 +1,5 @@
-﻿using DocumentHandlerFactory.Models;
+﻿using DocumentHandlerFactory.Extensions;
+using DocumentHandlerFactory.Models;
 using System;
 
 namespace DocumentHandlerFactory.Settings
@@ -22,8 +23,6 @@ namespace DocumentHandlerFactory.Settings
 
         public FileSettings FileSettings { get; set; }
 
-        public TempFileSettings TempFileSettings { get; set; }
-
         public static DocumentHandlerSettings DefaultValue()
         {
             return new DocumentHandlerSettings()
@@ -31,7 +30,6 @@ namespace DocumentHandlerFactory.Settings
                 HandlerType = HandlerType.File,
                 FileSettings = new FileSettings(),
                 FtpSettings = null,
-                TempFileSettings = new TempFileSettings(),
             };
         }
         private void SetToDefaultValues()
@@ -41,7 +39,6 @@ namespace DocumentHandlerFactory.Settings
             this.HandlerType = val.HandlerType;
             this.FtpSettings = val.FtpSettings;
             this.FileSettings = val.FileSettings;
-            this.TempFileSettings = val.TempFileSettings;
         }
 
         public void Validate()
@@ -59,9 +56,6 @@ namespace DocumentHandlerFactory.Settings
                 default:
                     throw new NotImplementedException();
             }
-
-            if (TempFileSettings == null)
-                throw new ArgumentNullException(paramName: nameof(TempFileSettings));
         }
 
         private void ValidateFtp()
@@ -78,6 +72,12 @@ namespace DocumentHandlerFactory.Settings
 
             if (settings.FileSettings == null)
                 throw new ArgumentNullException(message: "FileSettings is null!", paramName: nameof(settings.FileSettings));
+
+            if (FileSettings.BaseDirectory == null)
+                throw new ArgumentNullException(paramName: nameof(FileSettings.BaseDirectory));
+
+            if (!BetterPath.IsValiFilePath(FileSettings.BaseDirectory))
+                throw new InvalidOperationException($"FileSettings.BaseDirectory could not be verified!");
         }
     }
 }

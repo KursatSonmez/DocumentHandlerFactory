@@ -6,12 +6,12 @@ using Xunit;
 
 namespace DocumentHandlerFactory.UnitTest.Settings
 {
-    public class DocumentHandlerSettingsTests
+    public class TempFileSettingsTests
     {
         [Fact]
         public void Default_Initialization_Should_be_Successful()
         {
-            var settings = DocumentHandlerSettings.DefaultValue();
+            var settings = TempFileSettings.DefaultValue();
 
             Assert.Equal(HandlerType.File, settings.HandlerType);
 
@@ -20,15 +20,9 @@ namespace DocumentHandlerFactory.UnitTest.Settings
 
             // FileSettings
             {
-                var assemblyLocation = System.Reflection.Assembly.GetEntryAssembly().Location;
+                var baseDir = Path.Combine(Path.GetTempPath(), TempFileSettings.DefaultTempFolderName);
 
-                var baseDirectory =
-                    Path.Combine(
-                        Path.GetDirectoryName(assemblyLocation),
-                        "Handled Documents"
-                    );
-
-                Assert.Equal(baseDirectory, settings.FileSettings.BaseDirectory);
+                Assert.Equal(baseDir, settings.FileSettings.BaseDirectory);
             }
         }
 
@@ -37,22 +31,22 @@ namespace DocumentHandlerFactory.UnitTest.Settings
         {
             // Ftp validation
             {
-                var settings = new DocumentHandlerSettings
+                var settings = new TempFileSettings
                 {
                     HandlerType = HandlerType.Ftp,
                     FtpSettings = null,
                     FileSettings = new FileSettings(),
+                    TempFolderName = TempFileSettings.DefaultTempFolderName,
                 };
 
                 var ex = Assert.Throws<ArgumentNullException>(() => settings.Validate());
 
-                Assert.Equal(nameof(DocumentHandlerSettings.FtpSettings), ex.ParamName);
-                Assert.StartsWith("FtpSettings is null!", ex.Message);
+                Assert.Equal(nameof(TempFileSettings.FtpSettings), ex.ParamName);
             }
 
             // File validation
             {
-                var settings = new DocumentHandlerSettings
+                var settings = new TempFileSettings
                 {
                     HandlerType = HandlerType.File,
                     FtpSettings = null,
@@ -61,8 +55,7 @@ namespace DocumentHandlerFactory.UnitTest.Settings
 
                 var ex = Assert.Throws<ArgumentNullException>(() => settings.Validate());
 
-                Assert.Equal(nameof(DocumentHandlerSettings.FileSettings), ex.ParamName);
-                Assert.StartsWith("FileSettings is null!", ex.Message);
+                Assert.Equal(nameof(TempFileSettings.FileSettings), ex.ParamName);
             }
         }
 
@@ -82,11 +75,12 @@ namespace DocumentHandlerFactory.UnitTest.Settings
         {
             var ex = Assert.Throws<ArgumentNullException>(() =>
             {
-                var settings = new DocumentHandlerSettings
+                var settings = new TempFileSettings
                 {
                     HandlerType = HandlerType.Ftp,
                     FtpSettings = new FtpSettings(url: url, username: username, password: password),
                     FileSettings = null,
+                    TempFolderName = null,
                 };
                 settings.Validate();
             });
@@ -100,7 +94,7 @@ namespace DocumentHandlerFactory.UnitTest.Settings
         [InlineData("asd", "asd", "asd")]
         public void FtpSettings_Validation_Should_be_Successful(string url, string username, string password)
         {
-            var settings = new DocumentHandlerSettings
+            var settings = new TempFileSettings
             {
                 HandlerType = HandlerType.Ftp,
                 FtpSettings = new FtpSettings(url: url, username: username, password: password),
@@ -113,19 +107,20 @@ namespace DocumentHandlerFactory.UnitTest.Settings
         }
 
         [Theory]
-        [InlineData("BaseDirectory", null, null)]
-        [InlineData("BaseDirectory", "", null)]
-        [InlineData("BaseDirectory", " ", null)]
-        [InlineData("BaseDirectory", "C:/asdasdasd/djfk|djf.", "FileSettings.BaseDirectory could not be verified!")]
-        public void FileSettings_Validation_Should_Be_Fail(string checkParamName, string baseDirectory, string errorMessage)
+        [InlineData("BaseDirectory", null, "tempfolder", "ArgumentNullException for baseDirectory")]
+        [InlineData("", "C:/asdasdasd/d|jfkdjf", "tempfolder", "FileSettings.BaseDirectory could not be verified!")]
+        [InlineData("TempFolderName", "C:/asdasdasd/djfkdjf", "", "ArgumentNullException for tempFolderName")]
+        [InlineData("", "C:/asdasdasd/djfkdjf", "tempfolder", "FileSettings.BaseDirectory must end with TempFolderName!")]
+        public void FileSettings_Validation_Should_Be_Fail(string checkParamName, string baseDirectory, string tempFolderName, string errorMessage)
         {
             try
             {
-                var settings = new DocumentHandlerSettings
+                var settings = new TempFileSettings
                 {
                     HandlerType = HandlerType.File,
                     FileSettings = new FileSettings(baseDirectory: baseDirectory),
                     FtpSettings = null,
+                    TempFolderName = tempFolderName,
                 };
                 settings.Validate();
 
@@ -142,22 +137,26 @@ namespace DocumentHandlerFactory.UnitTest.Settings
         }
 
         [Theory]
-        [InlineData("asolfkjasl")]
-        [InlineData("C:/asdasdasd/asdqweqwxööcv")]
-        [InlineData("C:/asldksaqwe/asldfkasf")]
-        [InlineData("C:\\AA\\BB\\CC")]
-        public void FileSettings_Validation_Should_Be_Successful(string baseDirectory)
+        [InlineData("tempfolder", "tempfolder")]
+        [InlineData(" tempfolder", " tempfolder")]
+        [InlineData("asolfkjasl/tempfolder", "tempfolder")]
+        [InlineData("C:/asdasdasd/asdqweqwxööcv/asdasfasftempfolder", "asdasfasftempfolder")]
+        [InlineData(@"C:\asldksaqwe\asldfkasf", "asldfkasf")]
+        [InlineData("C:\\AA\\BB\\CC\\CCtempfolder", "CCtempfolder")]
+        public void FileSettings_Validation_Should_Be_Successful(string baseDirectory, string tempFolderName)
         {
-            var settings = new DocumentHandlerSettings
+            var settings = new TempFileSettings
             {
                 HandlerType = HandlerType.File,
                 FileSettings = new FileSettings(baseDirectory: baseDirectory),
                 FtpSettings = null,
+                TempFolderName = tempFolderName,
             };
 
             var ex = Record.Exception(() => settings.Validate());
 
             Assert.Null(ex);
         }
+
     }
 }

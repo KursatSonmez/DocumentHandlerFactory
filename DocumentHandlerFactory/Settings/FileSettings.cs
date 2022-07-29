@@ -33,7 +33,9 @@ namespace DocumentHandlerFactory.Settings
         /// </summary>
         public string BaseDirectory { get; private set; }
 
-        private void SetBaseDirectory(string baseDirectory)
-            => BaseDirectory = baseDirectory ?? throw new ArgumentNullException(paramName: nameof(baseDirectory));
+        public void SetBaseDirectory(string baseDirectory)
+            => BaseDirectory = !string.IsNullOrWhiteSpace(baseDirectory)
+            ? baseDirectory
+            : throw new ArgumentNullException(paramName: nameof(BaseDirectory));
     }
 }

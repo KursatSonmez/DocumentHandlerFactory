@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace DocumentHandlerFactory.Services.Interfaces
     /// <summary>
     /// All operations are performed under the temp folder.
     /// </summary>
-    public interface ITempFileHandlerService
+    public interface ITempFileHandlerService: IDisposable
     {
         Task UploadFileAsync(string path, byte[] buffer, CancellationToken cancellationToken = default);
 

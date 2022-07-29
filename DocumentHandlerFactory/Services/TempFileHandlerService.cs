@@ -1,6 +1,7 @@
 ﻿using DocumentHandlerFactory.Extensions;
 using DocumentHandlerFactory.Services.Interfaces;
 using DocumentHandlerFactory.Settings;
+using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,10 +14,10 @@ namespace DocumentHandlerFactory.Services
 
         private readonly IDocumentHandlerService _documentHandlerService;
 
-        public TempFileHandlerService(DocumentHandlerSettings settings, IDocumentHandlerService documentHandlerService)
+        public TempFileHandlerService(TempFileSettings settings)
         {
-            Settings = settings.TempFileSettings;
-            _documentHandlerService = documentHandlerService;
+            Settings = settings;
+            _documentHandlerService = new DocumentHandlerService((DocumentHandlerSettings)settings);
         }
 
         public async Task UploadFileAsync(string path, byte[] buffer, CancellationToken cancellationToken = default)
@@ -38,7 +39,33 @@ namespace DocumentHandlerFactory.Services
         #region Helpers
 
         private string CombineTempPath(string path)
-            => BetterPath.Combine(Settings.TempFolderFullPath, path);
+            => Settings.HandlerType == Models.HandlerType.File
+            ? BetterPath.Combine(Settings.FileSettings.BaseDirectory, path)
+            : path;
+
+        #endregion
+
+
+        #region IDisposable
+
+        private bool _disposed = false;
+        private void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                _documentHandlerService.Dispose();
+            }
+
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         #endregion
     }

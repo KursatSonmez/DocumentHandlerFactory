@@ -23,5 +23,23 @@ namespace DocumentHandlerFactory.Extensions
 
             return Path.Combine(arr);
         }
+
+        public static bool IsValiFilePath(this string path)
+        {
+            bool isValid;
+
+            try
+            {
+                string fullPath = Path.GetFullPath(path);
+
+                isValid = path.IndexOfAny(Path.GetInvalidPathChars()) == -1;
+            }
+            catch
+            {
+                isValid = false;
+            }
+
+            return isValid;
+        }
     }
 }
