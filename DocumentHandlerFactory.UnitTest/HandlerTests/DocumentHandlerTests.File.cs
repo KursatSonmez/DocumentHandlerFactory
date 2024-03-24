@@ -1,7 +1,4 @@
 ﻿using DocumentHandlerFactory.Extensions;
-using DocumentHandlerFactory.Handlers;
-using DocumentHandlerFactory.Handlers.Interfaces;
-using DocumentHandlerFactory.Settings;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,9 +6,9 @@ using Xunit;
 
 namespace DocumentHandlerFactory.UnitTest.HandlerTests
 {
-    public class DocumentHandlerTests
-    {
-        public const string TestFolderName = "_TestFiles";
+	public class DocumentHandlerTests: BaseDocumentHandlerTests
+	{
+        public override string TestFolderName => "_TestFiles";
 
 
         [Fact]
@@ -107,7 +104,12 @@ namespace DocumentHandlerFactory.UnitTest.HandlerTests
             ex = await Record.ExceptionAsync(async () => await handler.DeleteFileAsync(fileName));
 
             Assert.Null(ex);
-        }
+
+			// check file existing
+			Assert.False(
+					await handler.FileExistsAsync(fileName)
+				);
+		}
 
         [Fact]
         public async Task CopyFileAsync_and_DeleteFileAsync()
@@ -127,44 +129,5 @@ namespace DocumentHandlerFactory.UnitTest.HandlerTests
             Assert.Null(ex);
         }
 
-
-
-        private string _baseDirectory;
-        private readonly object _baseDirectory_locker = new();
-        private string BaseDirectory
-        {
-            get
-            {
-                if (_baseDirectory != null)
-                    return _baseDirectory;
-
-                lock (_baseDirectory_locker)
-                {
-                    if (_baseDirectory == null)
-                    {
-                        var assemblyLocation = System.Reflection.Assembly.GetEntryAssembly().Location;
-                        var baseDirectory =
-                            Path.Combine(
-                                Path.GetDirectoryName(assemblyLocation),
-                                TestFolderName
-                            );
-                        _baseDirectory = baseDirectory;
-                    }
-                }
-
-                return _baseDirectory;
-            }
-        }
-
-        private (IDocumentHandler, DocumentHandlerSettings) GetHandler()
-        {
-            var settings = DocumentHandlerSettings.DefaultValue();
-
-            settings.FileSettings = new FileSettings(BaseDirectory);
-
-            var handler = new DocumentHandler(settings);
-
-            return (handler, settings);
-        }
     }
 }
