@@ -1,109 +1,109 @@
 ﻿using DocumentHandlerFactory.Extensions;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace DocumentHandlerFactory.UnitTest.HandlerTests
 {
-	public class DocumentHandlerTests: BaseDocumentHandlerTests
+	public class DocumentHandlerTests : BaseDocumentHandlerTests
 	{
-        public override string TestFolderName => "_TestFiles";
+		public override string TestFolderName => "_TestFiles";
 
 
-        [Fact]
-        public async Task FileExistsAsync()
-        {
-            var (handler, _) = GetHandler();
+		[Fact]
+		public async Task FileExistsAsync()
+		{
+			var (handler, _) = GetHandler();
 
-            var res = await handler.FileExistsAsync("file1.txt");
+			var res = await handler.FileExistsAsync("file1.txt");
 
-            Assert.True(res);
-        }
+			Assert.True(res);
+		}
 
 
-        [Fact]
-        public async Task DirectoryExistsAsync()
-        {
-            var (handler, _) = GetHandler();
+		[Fact]
+		public async Task DirectoryExistsAsync()
+		{
+			var (handler, _) = GetHandler();
 
-            var res = await handler.DirectoryExistsAsync("");
+			var res = await handler.DirectoryExistsAsync("");
 
-            Assert.True(res);
-        }
+			Assert.True(res);
+		}
 
-        [Fact]
-        public async Task CreateDirectoryAsync()
-        {
-            var (handler, settings) = GetHandler();
+		[Fact]
+		public async Task CreateDirectoryAsync()
+		{
+			var (handler, settings) = GetHandler();
 
-            string dirName = Guid.NewGuid().ToString();
+			string dirName = Guid.NewGuid().ToString();
 
-            // create directory
-            var ex = await Record.ExceptionAsync(async () => await handler.CreateDirectoryAsync(dirName));
+			// create directory
+			var ex = await Record.ExceptionAsync(async () => await handler.CreateDirectoryAsync(dirName));
 
-            Assert.Null(ex);
+			Assert.Null(ex);
 
-            // check directory existing
-            var res = await handler.DirectoryExistsAsync(dirName);
+			// check directory existing
+			var res = await handler.DirectoryExistsAsync(dirName);
 
-            Assert.True(res);
+			Assert.True(res);
 
-            // delete directory
-            // TODO: delete with handler
-            string dirFullPath = BetterPath.Combine(settings.FileSettings.BaseDirectory, dirName);
+			// delete directory
+			string dirFullPath = BetterPath.Combine(settings.FileSettings.BaseDirectory, dirName);
 
-            Directory.Delete(dirFullPath);
-        }
+			ex = await Record.ExceptionAsync(async () => await handler.DeleteDirectoryAsync(dirFullPath));
 
-        [Fact]
-        public async Task ReadFileTests()
-        {
-            var (handler, _) = GetHandler();
+			Assert.Null(ex);
+		}
 
-            // bytes
-            var bytes = await handler.ReadAllBytesAsync("file1.txt");
+		[Fact]
+		public async Task ReadFileTests()
+		{
+			var (handler, _) = GetHandler();
 
-            Assert.True(bytes.Length > 0);
+			// bytes
+			var bytes = await handler.ReadAllBytesAsync("file1.txt");
 
-            // base64
-            var base64 = await handler.ReadAsBase64Async("file1.txt");
+			Assert.True(bytes.Length > 0);
 
-            Assert.False(string.IsNullOrWhiteSpace(base64));
+			// base64
+			var base64 = await handler.ReadAsBase64Async("file1.txt");
 
-            // text
-            var text = await handler.ReadAllTextAsync("file1.txt");
+			Assert.False(string.IsNullOrWhiteSpace(base64));
 
-            Assert.Equal("file1", text.Trim());
-        }
+			// text
+			var text = await handler.ReadAllTextAsync("file1.txt");
 
-        [Fact]
-        public async Task UploadFileAsync_and_DeleteFileAsync()
-        {
-            var (handler, settings) = GetHandler();
+			Assert.Equal("file1", text.Trim());
+		}
 
-            string fileName = Guid.NewGuid().ToString() + ".txt";
+		[Fact]
+		public async Task UploadFileAsync_and_DeleteFileAsync()
+		{
+			var (handler, settings) = GetHandler();
 
-            string text = "file2" + fileName;
+			string fileName = Guid.NewGuid().ToString() + ".txt";
 
-            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(text);
+			string text = "file2" + fileName;
 
-            // upload file
-            var ex = await Record.ExceptionAsync(async () => await handler.UploadFileAsync(fileName, bytes));
+			byte[] bytes = System.Text.Encoding.UTF8.GetBytes(text);
 
-            Assert.Null(ex);
+			// upload file
+			var ex = await Record.ExceptionAsync(async () => await handler.UploadFileAsync(fileName, bytes));
 
-            //string fullPath = BetterPath.Combine(settings.FileSettings.BaseDirectory, fileName);
+			Assert.Null(ex);
 
-            // check file existing
-            Assert.True(
-                    await handler.FileExistsAsync(fileName)
-                );
+			//string fullPath = BetterPath.Combine(settings.FileSettings.BaseDirectory, fileName);
 
-            // delete file
-            ex = await Record.ExceptionAsync(async () => await handler.DeleteFileAsync(fileName));
+			// check file existing
+			Assert.True(
+					await handler.FileExistsAsync(fileName)
+				);
 
-            Assert.Null(ex);
+			// delete file
+			ex = await Record.ExceptionAsync(async () => await handler.DeleteFileAsync(fileName));
+
+			Assert.Null(ex);
 
 			// check file existing
 			Assert.False(
@@ -111,23 +111,23 @@ namespace DocumentHandlerFactory.UnitTest.HandlerTests
 				);
 		}
 
-        [Fact]
-        public async Task CopyFileAsync_and_DeleteFileAsync()
-        {
-            var (handler, settings) = GetHandler();
+		[Fact]
+		public async Task CopyFileAsync_and_DeleteFileAsync()
+		{
+			var (handler, settings) = GetHandler();
 
-            string fileName = Guid.NewGuid().ToString() + ".txt";
+			string fileName = Guid.NewGuid().ToString() + ".txt";
 
-            // copy file
-            var ex = await Record.ExceptionAsync(async () => await handler.CopyFileAsync("file1.txt", fileName));
+			// copy file
+			var ex = await Record.ExceptionAsync(async () => await handler.CopyFileAsync("file1.txt", fileName));
 
-            Assert.Null(ex);
+			Assert.Null(ex);
 
-            // delete file
-            ex = await Record.ExceptionAsync(async () => await handler.DeleteFileAsync(fileName));
+			// delete file
+			ex = await Record.ExceptionAsync(async () => await handler.DeleteFileAsync(fileName));
 
-            Assert.Null(ex);
-        }
+			Assert.Null(ex);
+		}
 
-    }
+	}
 }

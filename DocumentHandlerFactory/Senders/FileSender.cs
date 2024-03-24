@@ -50,6 +50,19 @@ namespace DocumentHandlerFactory.Senders
 
 		#endregion
 
+		#region DeleteDirectory
+
+		public async Task DeleteDirectoryAsync(string path, CancellationToken cancellationToken = default)
+			=> await Task.Run(() => Directory.Delete(path), cancellationToken);
+
+		public void DeleteDirectory(string path, CancellationToken cancellationToken = default)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			Directory.Delete(path);
+		}
+
+		#endregion
+
 
 		#region ReadFile
 

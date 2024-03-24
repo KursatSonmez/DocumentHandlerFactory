@@ -50,10 +50,12 @@ namespace DocumentHandlerFactory.UnitTest.HandlerTests
 			Assert.True(res);
 
 			// delete directory
-			// TODO: delete with handler
+
 			string dirFullPath = BetterPath.Combine(settings.FileSettings.BaseDirectory, dirName);
 
-			Directory.Delete(dirFullPath);
+			ex = Record.Exception(() => handler.DeleteDirectory(dirFullPath));
+
+			Assert.Null(ex);
 		}
 
 		[Fact]

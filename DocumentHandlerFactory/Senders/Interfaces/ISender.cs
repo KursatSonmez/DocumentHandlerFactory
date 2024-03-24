@@ -22,6 +22,15 @@ namespace DocumentHandlerFactory.Senders.Interfaces
 		#endregion
 
 
+		#region DeleteDirectory
+
+		Task DeleteDirectoryAsync(string path, CancellationToken cancellationToken = default);
+
+		void DeleteDirectory(string path, CancellationToken cancellationToken = default);
+
+		#endregion
+
+
 		#region ReadFile
 		Task<byte[]> ReadAllBytesAsync(string path, CancellationToken cancellationToken = default);
 		byte[] ReadAllBytes(string path, CancellationToken cancellationToken = default);

@@ -129,6 +129,15 @@ namespace DocumentHandlerFactory.Senders
 
 		#endregion
 
+		#region DeleteDirectory
+
+		public async Task DeleteDirectoryAsync(string path, CancellationToken cancellationToken = default)
+			=> await ExecuteAsync(WebRequestMethods.Ftp.RemoveDirectory, path, cancellationToken);
+
+		public void DeleteDirectory(string path, CancellationToken cancellationToken = default)
+			=> Execute(WebRequestMethods.Ftp.RemoveDirectory, path, cancellationToken);
+
+		#endregion
 
 		#region ReadFile
 
