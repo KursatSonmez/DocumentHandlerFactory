@@ -1,4 +1,6 @@
 ﻿using DocumentHandlerFactory.Extensions;
+using DocumentHandlerFactory.Handlers;
+using DocumentHandlerFactory.Settings;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -9,6 +11,25 @@ namespace DocumentHandlerFactory.UnitTest.HandlerTests
 	{
 		public override string TestFolderName => "_TestFiles";
 
+		[Fact]
+		public async Task FTP_FileExists()
+		{
+			var settings = new DocumentHandlerSettings
+			{
+				HandlerType = Models.HandlerType.Ftp,
+				FtpSettings = new FtpSettings("ftp://1.2.3.4:5", "test", "123456"),
+			};
+
+			var handler = new DocumentHandler(settings);
+
+			var res = await handler.FileExistsAsync("Marka\\Logo\\2001_05481.JPG");
+
+			Assert.True(res);
+
+			res = await handler.FileExistsAsync("Marka\\Logo\\2001_0548111111.JPG");
+
+			Assert.False(res);
+		}
 
 		[Fact]
 		public async Task FileExistsAsync()
@@ -18,6 +39,10 @@ namespace DocumentHandlerFactory.UnitTest.HandlerTests
 			var res = await handler.FileExistsAsync("file1.txt");
 
 			Assert.True(res);
+
+			res = await handler.FileExistsAsync("file1111111111.txt");
+
+			Assert.False(res);
 		}
 
 

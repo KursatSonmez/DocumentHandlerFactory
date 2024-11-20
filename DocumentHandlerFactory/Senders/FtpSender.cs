@@ -21,7 +21,7 @@ namespace DocumentHandlerFactory.Senders
 			Settings = settings;
 		}
 
-		protected const string FileExistsMethod = WebRequestMethods.Ftp.GetFileSize;
+		protected const string FileExistsMethod = WebRequestMethods.Ftp.GetDateTimestamp;
 		protected const string ForwardSlash = "/";
 
 		protected string BaseUrl => Settings.FtpSettings.Url;
@@ -43,14 +43,12 @@ namespace DocumentHandlerFactory.Senders
 
 		public async Task<bool> FileExistsAsync(string path, CancellationToken cancellationToken = default)
 		{
-			await ExecuteAsync(FileExistsMethod, path, cancellationToken);
-			return true;
+			return await ExecuteAsync(FileExistsMethod, path, cancellationToken);
 		}
 
 		public bool FileExists(string path, CancellationToken cancellationToken = default)
 		{
-			Execute(FileExistsMethod, path, cancellationToken);
-			return true;
+			return Execute(FileExistsMethod, path, cancellationToken);
 		}
 
 		public async Task<bool> DirectoryExistsAsync(string directory, CancellationToken cancellationToken = default)
@@ -215,13 +213,13 @@ namespace DocumentHandlerFactory.Senders
 
 		#region Helpers
 
-		protected void Execute(string method, string path, CancellationToken cancellationToken, byte[] buffer = null)
+		protected bool Execute(string method, string path, CancellationToken cancellationToken, byte[] buffer = null)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
 			FtpWebRequest req = GetRequest(path, method);
 
-			void run()
+			bool run()
 			{
 				if (method == WebRequestMethods.Ftp.UploadFile)
 				{
@@ -239,43 +237,41 @@ namespace DocumentHandlerFactory.Senders
 					res.Close();
 					res.Dispose();
 				}
+
+				return true;
 			}
 
 			bool catchHandle = method == WebRequestMethods.Ftp.MakeDirectory || method == FileExistsMethod;
-			void catchHandler()
+			bool catchHandler()
 			{
 				try
 				{
-					run();
+					return run();
 				}
 				catch (WebException ex)
 				{
 					FtpWebResponse res = (FtpWebResponse)ex.Response;
 
-					if (catchHandle && res.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
-						return;
-					//else if (method == WebRequestMethods.Ftp.GetDateTimestamp)
-					//{
-					//    // do nothing
-					//}
+					if (method == FileExistsMethod && res.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+						return false; // dosya bulunamadı
 					else
-						throw;
+						throw; // başka hata olduğu için exception patlatılır.
 				}
 			}
 
 			if (catchHandle)
-				catchHandler();
+				return catchHandler();
 			else
-				run();
+				return run();
 		}
 
-		protected async Task ExecuteAsync(string method, string path, CancellationToken cancellationToken, byte[] buffer = null)
+		protected async Task<bool> ExecuteAsync(string method, string path, CancellationToken cancellationToken, byte[] buffer = null)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
 			FtpWebRequest req = GetRequest(path, method);
 
-			async Task run()
+			async Task<bool> run()
 			{
 				if (method == WebRequestMethods.Ftp.UploadFile)
 				{
@@ -293,34 +289,32 @@ namespace DocumentHandlerFactory.Senders
 					res.Close();
 					res.Dispose();
 				}
+
+				return true;
 			}
 
 			bool catchHandle = method == WebRequestMethods.Ftp.MakeDirectory || method == FileExistsMethod;
-			async Task catchHandler()
+			async Task<bool> catchHandler()
 			{
 				try
 				{
-					await run();
+					return await run();
 				}
 				catch (WebException ex)
 				{
 					FtpWebResponse res = (FtpWebResponse)ex.Response;
 
-					if (catchHandle && res.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
-						return;
-					//else if (method == WebRequestMethods.Ftp.GetDateTimestamp)
-					//{
-					//    // do nothing
-					//}
+					if (method == FileExistsMethod && res.StatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+						return false; // dosya bulunamadı
 					else
-						throw;
+						throw; // başka hata olduğu için exception patlatılır.
 				}
 			}
 
 			if (catchHandle)
-				await catchHandler();
+				return await catchHandler();
 			else
-				await run();
+				return await run();
 		}
 
 		protected async Task CreateFTPDirectory(string directory, CancellationToken cancellationToken)
